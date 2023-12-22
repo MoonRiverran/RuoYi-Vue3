@@ -1,8 +1,37 @@
 <template>
   <div class="app-container">
+    <el-row :gutter="20">
+      <!--部门数据-->
+      <el-col :span="4" :xs="24">
+<!--        <div class="head-container">-->
+<!--          <el-input-->
+<!--              v-model="deptName"-->
+<!--              placeholder="请输入部门名称"-->
+<!--              clearable-->
+<!--              prefix-icon="Search"-->
+<!--              style="margin-bottom: 20px"-->
+<!--          />-->
+<!--        </div>-->
+        <div class="head-container">
+          <el-tree
+              :data="deptOptions"
+              :props="{ label: 'label', children: 'children' }"
+              :expand-on-click-node="false"
+              :filter-node-method="filterNode"
+              ref="deptTreeRef"
+              node-key="id"
+              highlight-current
+              default-expand-all
+              @node-click="handleNodeClick"
+          />
+        </div>
+      </el-col>
+      <!--绩效数据-->
+      <el-col :span="20" :xs="24">
+
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="工作类型" prop="workType">
-        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" clearable>
+      <el-form-item label="工作类型" prop="workType"  style="margin-right:0px">
+        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" style="width:80%" clearable>
           <el-option
               v-for="dict in work_type"
               :key="dict.value"
@@ -11,8 +40,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="项目类型" prop="projectType">
-        <el-select v-model="queryParams.projectType" placeholder="请选择项目类型" clearable>
+      <el-form-item label="项目类型" prop="projectType" style="margin-right:0px">
+        <el-select v-model="queryParams.projectType" placeholder="请选择项目类型" style="width:80%" clearable>
           <el-option
               v-for="dict in project_type"
               :key="dict.value"
@@ -21,8 +50,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="完成日期" prop="completionDate">
-        <el-date-picker clearable
+      <el-form-item label="完成日期" prop="completionDate" style="margin-right:0px">
+        <el-date-picker style="width:80%" clearable
                         v-model="queryParams.completionDate"
                         type="date"
                         value-format="YYYY-MM-DD"
@@ -34,17 +63,16 @@
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
-
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-            type="primary"
-            plain
-            icon="Plus"
-            @click="handleAdd"
-            v-hasPermi="['system:perf:add']"
-        >新增</el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button-->
+<!--            type="primary"-->
+<!--            plain-->
+<!--            icon="Plus"-->
+<!--            @click="handleAdd"-->
+<!--            v-hasPermi="['system:perf:add']"-->
+<!--        >新增</el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
             type="success"
@@ -55,16 +83,16 @@
             v-hasPermi="['system:perf:edit']"
         >修改</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="danger"
-            plain
-            icon="Delete"
-            :disabled="multiple"
-            @click="handleDelete"
-            v-hasPermi="['system:perf:remove']"
-        >删除</el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button-->
+<!--            type="danger"-->
+<!--            plain-->
+<!--            icon="Delete"-->
+<!--            :disabled="multiple"-->
+<!--            @click="handleDelete"-->
+<!--            v-hasPermi="['system:perf:remove']"-->
+<!--        >删除</el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
             type="warning"
@@ -80,7 +108,7 @@
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
-      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
+      <el-table-column label="员工工号" width="90" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
       <el-table-column label="工作类型" width="140" align="center" prop="workType">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -92,9 +120,9 @@
         </template>
       </el-table-column>
       <el-table-column label="项目说明" align="center" prop="projectDescription">
-      <template #default="scope">
-        <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
-      </template>
+        <template #default="scope">
+          <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
+        </template>
       </el-table-column>
       <el-table-column label="目标" align="center" prop="goal" >
         <template #default="scope">
@@ -129,13 +157,12 @@
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.remark">{{ scope.row.remark }}</div>
         </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:perf:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:perf:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+      </el-table-column><!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
+<!--        <template #default="scope">-->
+<!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:perf:edit']">修改</el-button>-->
+<!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:perf:remove']">删除</el-button>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
     </el-table>
 
     <pagination
@@ -145,7 +172,8 @@
         v-model:limit="queryParams.pageSize"
         @pagination="getList"
     />
-
+      </el-col>
+    </el-row>
     <!-- 添加或修改员工绩效对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="perfRef" :model="form" :rules="rules" label-width="100px">
@@ -214,7 +242,7 @@
 </template>
 
 <script setup name="Perf">
-import { listPerf, getPerf, delPerf, addPerf, updatePerf } from "@/api/system/perf";
+import { listPerf, getPerf, delPerf, addPerf, updatePerf, deptTreeSelect } from "@/api/system/perf";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
@@ -228,6 +256,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const deptOptions = ref(undefined);
+
 
 const data = reactive({
   form: {},
@@ -273,6 +303,8 @@ const data = reactive({
   }
 });
 
+
+
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询员工绩效列表 */
@@ -284,6 +316,18 @@ function getList() {
     loading.value = false;
   });
 }
+
+/** 查询部门下拉树结构 */
+function getDeptTree() {
+  deptTreeSelect().then(response => {
+    deptOptions.value = response.data;
+  });
+};
+/** 节点单击事件 */
+function handleNodeClick(data) {
+  queryParams.value.empDeptid = data.id;
+  handleQuery();
+};
 
 // 取消按钮
 function cancel() {
@@ -392,7 +436,7 @@ function handleExport() {
     ...queryParams.value
   }, `perf_${new Date().getTime()}.xlsx`)
 }
-
+getDeptTree();
 getList();
 </script>
 <style>
@@ -408,3 +452,4 @@ getList();
   text-overflow: inherit;
 }
 </style>
+
