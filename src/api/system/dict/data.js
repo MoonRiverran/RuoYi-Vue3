@@ -50,3 +50,14 @@ export function delData(dictCode) {
     method: 'delete'
   })
 }
+
+export function getDictLabel(dictType, dictValue) {
+  return request({
+    url: '/system/dict/data/dictLabel',
+    method: 'get',
+    params: {
+      dictType: dictType,
+      dictValue: dictValue
+    }
+  })
+}

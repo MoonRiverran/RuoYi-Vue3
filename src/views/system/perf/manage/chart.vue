@@ -6,12 +6,15 @@
 
 <script>
 import * as echarts from 'echarts';
-import axios from 'axios';
+import { getMonthWorkHour } from "@/api/system/perf";
+import { getDictLabel } from '@/api/system/dict/data'
+
 
 export default {
   data() {
     return {
-      employeeData: []
+      employeeData: [],
+      workType:[],
     };
   },
   mounted() {
@@ -19,16 +22,16 @@ export default {
   },
   methods: {
     fetchEmployeeData() {
-      axios.get('your_backend_api_url')
-          .then(response => {
-            this.employeeData = response.data;
-            this.renderChart();
-          })
+      getMonthWorkHour().then(response => {
+        this.employeeData = response.rows;
+        this.renderChart();
+      })
           .catch(error => {
             console.error('Error fetching employee data', error);
           });
     },
     renderChart() {
+      console.log(this.employeeData);
       let chart = echarts.init(this.$refs.chart);
       let option = {
         title: {
@@ -38,8 +41,8 @@ export default {
           type: 'pie',
           radius: '50%',
           data: this.employeeData.map(item => ({
-            name: item.type,
-            value: item.workHours
+            name: (item.workType),
+            value: item.workDuration
           }))
         }]
       };
