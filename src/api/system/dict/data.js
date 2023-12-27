@@ -53,11 +53,7 @@ export function delData(dictCode) {
 
 export function getDictLabel(dictType, dictValue) {
   return request({
-    url: '/system/dict/data/dictLabel',
+    url: '/system/dict/data/dictLabel/' + dictType +'/' + dictValue,
     method: 'get',
-    params: {
-      dictType: dictType,
-      dictValue: dictValue
-    }
   })
 }
