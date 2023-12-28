@@ -28,7 +28,6 @@
       </el-col>
       <!--绩效数据-->
       <el-col :span="20" :xs="24">
-
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="工作类型" prop="workType"  style="margin-right:0px">
         <el-select v-model="queryParams.workType" placeholder="请选择工作类型" style="width:80%" clearable>
