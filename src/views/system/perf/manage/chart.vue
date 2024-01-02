@@ -93,7 +93,7 @@ export default {
           value:36,
           // type:"workType002"
         },{
-          name:"科研项目（外部）",
+          name:"科研项目（内部）",
           value:36,
           // type:"workType001"
         },{
