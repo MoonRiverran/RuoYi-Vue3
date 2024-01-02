@@ -3,11 +3,10 @@
     <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
     <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!settingsStore.topNav" />
 <!--    <top-nav id="topmenu-container" class="topmenu-container" v-if="settingsStore.topNav" />-->
-
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
 <!--        <header-search id="header-search" class="right-menu-item" />-->
-
+        <h2 style="">电气智能院员工绩效管理系统</h2>
 <!--        <el-tooltip content="源码地址" effect="dark" placement="bottom">-->
 <!--          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />-->
 <!--        </el-tooltip>-->
