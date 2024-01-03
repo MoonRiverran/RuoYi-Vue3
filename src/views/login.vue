@@ -46,10 +46,10 @@
           :loading="loading"
           size="large"
           type="primary"
-          style="width:100%;"
+          style="width:100%;background-color: #29eafd; color: black;"
           @click.prevent="handleLogin"
         >
-          <span v-if="!loading">登 录</span>
+          <span v-if="!loading">立 即 登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
         <div style="float: right;" v-if="register">
@@ -75,8 +75,8 @@ const router = useRouter();
 const { proxy } = getCurrentInstance();
 
 const loginForm = ref({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   rememberMe: false,
   code: "",
   uuid: ""
@@ -164,27 +164,32 @@ getCookie();
 <style lang='scss' scoped>
 .login {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   height: 100%;
   background-image: url("../assets/images/login-background.jpg");
   background-size: cover;
+  background-repeat: no-repeat;
 }
 .title {
   margin: 0px auto 30px auto;
   text-align: center;
-  color: #707070;
+  color: #29eafd;
 }
 
 .login-form {
   border-radius: 6px;
-  background: #ffffff;
+  background-image: url("../assets/images/square.jpg");
+  background-size: cover;
   width: 400px;
+  margin-right: 200px;
   padding: 25px 25px 5px 25px;
   .el-input {
     height: 40px;
+    color: #29eafd;
     input {
       height: 40px;
+      color: #29eafd;
     }
   }
   .input-icon {
