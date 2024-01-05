@@ -106,8 +106,8 @@
 
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
-      <el-table-column label="员工工号" width="90" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
+        <el-table-column label="员工姓名" align="center" prop="employeeName" />
+      <el-table-column label="员工工号" width="90" align="center" prop="employeeNumber" />
       <el-table-column label="工作类型" width="140" align="center" prop="workType">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>

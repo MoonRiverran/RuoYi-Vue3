@@ -22,71 +22,71 @@ export default {
       chartData: [],
 
       employeeInfo:[{
-        name:"宁方可",
+        name:"员工",
         id:"32432543643",
         workerData:[{
           name:"订单项目",
           value:36,
           //type:"workType002"
         },{
-          name:"科研项目",
+          name:"科研项目（内部）",
           value:36,
           //type:"workType001"
         },{
-          name:"外部项目",
+          name:"科研项目（外部）",
           value:36,
           //type:"workType003"
         },]
       },{
-        name:"宁方可224",
+        name:"员工224",
         id:"324325436535643",
         workerData:[{
           name:"订单项目",
           value:36,
           //type:"workType002"
         },{
-          name:"科研项目",
+          name:"科研项目（内部）",
           value:36,
           //type:"workType001"
         },{
-          name:"外部项目",
+          name:"科研项目（外部）",
           value:36,
           //type:"workType003"
         },]
       },{
-        name:"宁方3可",
+        name:"员工3",
         id:"12432453654",
         workerData:[{
           name:"订单项目",
           value:36,
           // type:"workType002"
         },{
-          name:"科研项目",
+          name:"科研项目（内部）",
           value:36,
           //type:"workType001"
         },{
-          name:"外部项目",
+          name:"科研项目（外部）",
           value:36,
           // type:"workType003"
         },]
       },{
-        name:"宁方可2",
+        name:"员工2",
         id:"324325423423643",
         workerData:[{
           name:"订单项目",
           value:36,
           // type:"workType002"
         },{
-          name:"科研项目",
+          name:"科研项目（内部）",
           value:36,
           //type:"workType001"
         },{
-          name:"外部项目",
+          name:"科研项目（外部）",
           value:36,
           //type:"workType003"
         },]
       },{
-        name:"宁方可1",
+        name:"员工1",
         id:"3243215436565643",
         workerData:[{
           name:"订单项目",
@@ -97,7 +97,7 @@ export default {
           value:36,
           // type:"workType001"
         },{
-          name:"外部项目",
+          name:"科研项目（外部）",
           value:36,
           // type:"workType003"
         },]
