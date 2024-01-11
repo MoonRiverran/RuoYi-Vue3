@@ -1,9 +1,5 @@
 <template>
-  <div class="container">
-    <div v-for="employee in employeeInfo" :key="employee.id" class="chart-container">
-      <div :id="'crchi-chart' + employee.id" class="chart"></div>
-    </div>
-  </div>
+  <div id="commonLegend"></div>
 </template>
 
 <script>
@@ -14,93 +10,76 @@ export default {
   data() {
     return {
       employeeInfo: [],
+      legend: null,
     };
   },
   mounted() {
     // 调用 getMonthWorkHour 方法获取数据
     getMonthWorkHour().then(response => {
-      this.employeeInfo = response.data;
       console.log(response.data);
+      this.employeeInfo = response.data;
       this.renderChart();
     });
   },
   methods: {
     renderChart() {
-      if (this.employeeInfo.length > 0) {
-        for (let i = 0; i < this.employeeInfo.length; i++) {
-          this.$nextTick(() => {
-            let chartId = 'crchi-chart' + this.employeeInfo[i].id;
-            let myChart = echarts.init(document.getElementById(chartId));
-            // 设置echarts的配置项
-            let option = {
-              title: {
-                text: this.employeeInfo[i].name,
-                x: 'center',
-                y: 'bottom',
-                textStyle: {
-                  textAlign: 'center'
-                }
-              },
-              tooltip: {
-                trigger: 'item',
-                formatter: '{b} : {c}(h) ({d}%)'
-              },
-              legend: {
-                orient: 'horizontal',
-                x: 'center',
-                // data: ['科研项目（外部）', '科研项目（内部）', '订单项目', '技术预研', '工地服务', '平台开发', '基层工作', '知识产权', '外部工作', '其他']
-              },
-              series: [{
-                type: 'pie',
-                radius: ['20%', '50%'],
-                center: ['50%', '50%'],
-                data: this.employeeInfo[i].workerData,
-                label: {
-                  normal: {
-                    position: 'inner',
-                    formatter: '{c}h',
-                    textStyle: {
-                      color: 'black',
-                      fontWeight: 'bold',
-                      fontSize: 12
-                    },
-                  }
-                },
-                labelLine: {
-                  show: false
-                }
-              }],
-            };
-            myChart.setOption(option)
-            //将该echarts用之前配置好的option的配置项进行渲染
-            window.addEventListener("resize", function () {
-              //监听窗口变动实时渲染
-              myChart.resize();
-            });
-          });
+      var series = [];
+      var data = this.employeeInfo;
+      var dom = document.getElementById("commonLegend")
+      let myChart = echarts.init(dom);
 
-        }
+      // 根据数据个数计算行数和列数
+      var rowCount = Math.ceil(data.length / 5);
+      var colCount = Math.min(data.length, 5);
+      // 遍历数据，生成饼图系列
+      for (var i = 0; i < data.length; i++) {
+        var workerData = data[i].workerData;
+        series.push({
+          type: 'pie',
+          radius: ['10%', '20%'],
+          center: [((i % 5) * 15 + 15) + '%', (Math.floor(i / 5) * 30 + 15) + '%'],
+          encode: {
+            itemName: 'name',
+            value: 'value'
+          },
+          label: {
+            position: 'inner',
+            formatter: '{c}h',
+            color: 'black',
+            fontWeight: 'bold',
+            fontSize: 12
+          },
+          labelLine: {
+            show: false
+          },
+          data: workerData
+        });
+        // 在每个echarts图下生成序号
+        var chartDiv = document.createElement('div');
+        chartDiv.innerText = data[i].name;
+        chartDiv.style.position = 'absolute';
+        chartDiv.style.left = ((i % 5) * 15 + 13) + '%';
+        chartDiv.style.top = (Math.floor(i / 5) * 30 + 30) + '%'; // 调整序号的上下位置
+        dom.appendChild(chartDiv);
       }
+      var option = {
+        legend: {},
+        tooltip: {},
+        series: series
+      };
+      myChart.setOption(option);
+      window.addEventListener('resize', myChart.resize);
     },
   }
 };
 </script>
 
 <style>
-.container {
-  display: flex;
-  flex-wrap: wrap;
+#commonLegend {
+  position: relative;
+  top:0px;
+  height: 800px;
+  margin:0;
 }
-
-.chart-container {
-  flex-basis: 20%;
-  /* 可以根据需要调整宽度百分比 */
-}
-
-.chart {
-  width: 100%;
-  height: 300px;
-  /* 根据需要设置图表容器的高度 */
-}
-
 </style>
+
