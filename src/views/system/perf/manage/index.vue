@@ -64,8 +64,8 @@
       </el-form-item>
     </el-form>
 
-    <Chart></Chart>
-    <div v-if="showChart">
+    <Chart v-if="showChart"></Chart>
+    <div v-else>
       <el-row :gutter="10" class="mb8">
         <!--      <el-col :span="1.5">-->
         <!--        <el-button-->
@@ -244,7 +244,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const deptOptions = ref(undefined);
-
+var showChart = true;
 
 const data = reactive({
   form: {},
@@ -351,6 +351,7 @@ function reset() {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
+  showChart=false;
   getList();
 }
 
@@ -358,6 +359,7 @@ function handleQuery() {
 function resetQuery() {
   proxy.resetForm("queryRef");
   handleQuery();
+  showChart=true;
 }
 
 // 多选框选中数据
