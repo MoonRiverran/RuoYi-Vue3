@@ -16,7 +16,6 @@ export default {
   mounted() {
     // 调用 getMonthWorkHour 方法获取数据
     getMonthWorkHour().then(response => {
-      console.log(response.data);
       this.employeeInfo = response.data;
       this.renderChart();
     });

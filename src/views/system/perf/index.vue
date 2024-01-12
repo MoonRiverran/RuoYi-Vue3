@@ -21,12 +21,13 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="完成日期" prop="completionDate">
+      <el-form-item label="完成年月" prop="searchDate">
         <el-date-picker clearable
-                        v-model="queryParams.completionDate"
-                        type="date"
-                        value-format="YYYY-MM-DD"
-                        placeholder="请选择完成日期">
+                        v-model="queryParams.searchDate"
+                        type="month"
+                        format="YYYY年MM月"
+                        value-format="YYYY-MM"
+                        placeholder="请选择完成年月">
         </el-date-picker>
       </el-form-item>
       <el-form-item>

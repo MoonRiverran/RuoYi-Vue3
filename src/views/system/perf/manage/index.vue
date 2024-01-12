@@ -49,12 +49,13 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="完成日期" prop="completionDate" style="margin-right:0px">
+      <el-form-item label="完成年月" prop="searchDate" style="margin-right:0px">
         <el-date-picker style="width:80%" clearable
-                        v-model="queryParams.completionDate"
-                        type="date"
-                        value-format="YYYY-MM-DD"
-                        placeholder="请选择完成日期">
+                        v-model="queryParams.searchDate"
+                        type="month"
+                        format="YYYY年MM月"
+                        value-format="YYYY-MM"
+                        placeholder="请选择完成年月">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -149,8 +150,6 @@
         </el-table-column>
       </el-table>
     </div>
-
-
 
     <pagination
         v-show="total>0"
@@ -254,7 +253,7 @@ const data = reactive({
     pageSize: 10,
     workType: null,
     projectType: null,
-    completionDate: null,
+    searchDate: null,
   },
   rules: {
     workType: [
