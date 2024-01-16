@@ -27,16 +27,13 @@ export default {
       var dom = document.getElementById("commonLegend")
       let myChart = echarts.init(dom);
 
-      // 根据数据个数计算行数和列数
-      var rowCount = Math.ceil(data.length / 5);
-      var colCount = Math.min(data.length, 5);
       // 遍历数据，生成饼图系列
       for (var i = 0; i < data.length; i++) {
         var workerData = data[i].workerData;
         series.push({
           type: 'pie',
-          radius: ['10%', '20%'],
-          center: [((i % 5) * 15 + 15) + '%', (Math.floor(i / 5) * 30 + 15) + '%'],
+          radius: ['10%', '18%'],
+          center: [((i % 6) * 15 + 15) + '%', (Math.floor(i / 6) * 30 + 15) + '%'],
           encode: {
             itemName: 'name',
             value: 'value'
@@ -57,8 +54,8 @@ export default {
         var chartDiv = document.createElement('div');
         chartDiv.innerText = data[i].name;
         chartDiv.style.position = 'absolute';
-        chartDiv.style.left = ((i % 5) * 15 + 13) + '%';
-        chartDiv.style.top = (Math.floor(i / 5) * 30 + 30) + '%'; // 调整序号的上下位置
+        chartDiv.style.left = ((i % 6) * 15 + 13) + '%';
+        chartDiv.style.top = (Math.floor(i / 6) * 30 + 25) + '%'; // 调整序号的上下位置
         dom.appendChild(chartDiv);
       }
       var option = {

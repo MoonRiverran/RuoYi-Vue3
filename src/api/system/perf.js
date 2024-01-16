@@ -17,6 +17,14 @@ export function getMonthWorkHour(query) {
   })
 }
 
+export function getUserList(query) {
+  return request({
+    url: '/system/perf/userList',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询员工绩效详细
 export function getPerf(empId) {
   return request({

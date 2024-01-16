@@ -2,24 +2,10 @@
   <div class="navbar">
     <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
     <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!settingsStore.topNav" />
-<!--    <top-nav id="topmenu-container" class="topmenu-container" v-if="settingsStore.topNav" />-->
+    <h2 class="topmenu-container">电气智能院员工绩效管理系统</h2>
+
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
-<!--        <header-search id="header-search" class="right-menu-item" />-->
-        <h2 style="">电气智能院员工绩效管理系统</h2>
-<!--        <el-tooltip content="源码地址" effect="dark" placement="bottom">-->
-<!--          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />-->
-<!--        </el-tooltip>-->
-
-<!--        <el-tooltip content="文档地址" effect="dark" placement="bottom">-->
-<!--          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />-->
-<!--        </el-tooltip>-->
-
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
-
-<!--        <el-tooltip content="布局大小" effect="dark" placement="bottom">-->
-<!--          <size-select id="size-select" class="right-menu-item hover-effect" />-->
-<!--        </el-tooltip>-->
       </template>
       <div class="avatar-container">
         <el-dropdown @command="handleCommand" class="right-menu-item hover-effect" trigger="click">
@@ -126,7 +112,7 @@ function setLayout() {
 
   .topmenu-container {
     position: absolute;
-    left: 50px;
+    left: 500px;
   }
 
   .errLog-container {

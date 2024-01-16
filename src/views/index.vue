@@ -1,6 +1,16 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="员工姓名" prop="employeeNumber">
+        <el-select v-model="queryParams.employeeNumber" placeholder="请选择员工" clearable>
+          <el-option
+              v-for="(item, index) in userList"
+              :key="index"
+              :value="item.userName"
+              :label="item.nickName"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="工作类型" prop="workType">
         <el-select v-model="queryParams.workType" placeholder="请选择工作类型" clearable>
           <el-option
@@ -9,6 +19,7 @@
               :label="dict.label"
               :value="dict.value"
           />
+
         </el-select>
       </el-form-item>
       <el-form-item label="项目类型" prop="projectType">
@@ -80,8 +91,8 @@
 
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
-      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
+      <el-table-column label="员工姓名" align="center" prop="employeeName"  />
+      <el-table-column label="员工工号" align="center" prop="employeeNumber"  />
       <el-table-column label="工作类型" width="140" align="center" prop="workType">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -114,18 +125,6 @@
           <span>{{ parseTime(scope.row.completionDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <!--      <el-table-column label="创建者" align="center" prop="createBy" />-->
-      <!--      <el-table-column label="创建时间" align="center" prop="createTime" width="180">-->
-      <!--        <template #default="scope">-->
-      <!--          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>-->
-      <!--        </template>-->
-      <!--      </el-table-column>-->
-      <!--      <el-table-column label="更新者" align="center" prop="updateBy" />-->
-      <!--      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">-->
-      <!--        <template #default="scope">-->
-      <!--          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>-->
-      <!--        </template>-->
-      <!--      </el-table-column>-->
       <el-table-column label="备注" align="center" prop="remark" >
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.remark">{{ scope.row.remark }}</div>
@@ -215,7 +214,7 @@
 </template>
 
 <script setup name="Perf">
-import { listPerf, getPerf, delPerf, addPerf, updatePerf } from "@/api/system/perf";
+import { listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList } from "@/api/system/perf";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
@@ -229,6 +228,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const userList = ref([]);
 
 const data = reactive({
   form: {},
@@ -245,6 +245,9 @@ const data = reactive({
     ],
     projectType: [
       { required: true, message: "项目类型不能为空", trigger: "change" }
+    ],
+    completionDate: [
+      { required: true, message: "完成日期不能为空", trigger: "change" }
     ],
     completionRatio: [
       { required: true, message: "完成比列不能为空", trigger: "blur" },
@@ -283,6 +286,13 @@ function getList() {
     perfList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+/** 获取当前员工部门员工姓名 */
+function empList() {
+  getUserList().then(response => {
+    userList.value = response.data;
   });
 }
 
@@ -395,6 +405,7 @@ function handleExport() {
 }
 
 getList();
+empList();
 </script>
 <style>
 .ellipsis-text {
