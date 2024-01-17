@@ -1,7 +1,7 @@
 <template>
    <el-form ref="userRef" :model="user" :rules="rules" label-width="80px">
-      <el-form-item label="用户昵称" prop="nickName">
-         <el-input v-model="user.nickName" maxlength="30" />
+      <el-form-item label="用户昵称" prop="nickName" >
+         <el-input v-model="user.nickName" maxlength="30" disabled/>
       </el-form-item>
       <el-form-item label="手机号码" prop="phonenumber">
          <el-input v-model="user.phonenumber" maxlength="11" />

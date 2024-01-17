@@ -7,7 +7,7 @@
               v-for="(item, index) in userList"
               :key="index"
               :value="item.userName"
-              :label="item.nickName"
+              :label="`${item.nickName}：${item.userName}`"
           />
         </el-select>
       </el-form-item>
@@ -19,11 +19,10 @@
               :label="dict.label"
               :value="dict.value"
           />
-
         </el-select>
       </el-form-item>
-      <el-form-item label="项目类型" prop="projectType">
-        <el-select v-model="queryParams.projectType" placeholder="请选择项目类型" clearable>
+      <el-form-item label="任务类型" prop="projectType">
+        <el-select v-model="queryParams.projectType" placeholder="请选择任务类型" clearable>
           <el-option
               v-for="dict in project_type"
               :key="dict.value"
@@ -91,41 +90,41 @@
 
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="员工姓名" align="center" prop="employeeName"  />
-      <el-table-column label="员工工号" align="center" prop="employeeNumber"  />
+      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
+      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
       <el-table-column label="工作类型" width="140" align="center" prop="workType">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
         </template>
       </el-table-column>
-      <el-table-column label="项目类型" align="center" prop="projectType">
+      <el-table-column label="任务类型" align="center" prop="projectType">
         <template #default="scope">
           <dict-tag :options="project_type" :value="scope.row.projectType"/>
         </template>
       </el-table-column>
-      <el-table-column label="项目说明" align="center" prop="projectDescription">
+      <el-table-column label="任务说明" align="center" prop="projectDescription">
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="目标" align="center" prop="goal" >
+      <el-table-column label="任务目标" align="center" prop="goal" >
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.goal">{{ scope.row.goal }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="完成比例(%)" width="100" align="center" prop="completionRatio" />
-      <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
       <el-table-column label="完成结果" align="center" prop="completionResult">
         <template #default="scope">
           <dict-tag :options="completion_result" :value="scope.row.completionResult"/>
         </template>
       </el-table-column>
-      <el-table-column label="完成日期" align="center" prop="completionDate" width="180">
+      <el-table-column label="完成比例(%)" width="100" align="center" prop="completionRatio" />
+      <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
+      <el-table-column label="任务开始日期" align="center" prop="extensionField1" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.completionDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" >
+      <el-table-column label="个人评价" align="center" prop="remark" >
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.remark">{{ scope.row.remark }}</div>
         </template>
@@ -159,8 +158,8 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="项目类型" prop="projectType">
-          <el-select v-model="form.projectType" placeholder="请选择项目类型">
+        <el-form-item label="任务类型" prop="projectType">
+          <el-select v-model="form.projectType" placeholder="请选择任务类型">
             <el-option
                 v-for="dict in project_type"
                 :key="dict.value"
@@ -169,14 +168,11 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="项目说明" prop="projectDescription">
-          <el-input v-model="form.projectDescription" type="textarea" placeholder="请输入项目说明" />
+        <el-form-item label="任务说明" prop="projectDescription">
+          <el-input v-model="form.projectDescription" type="textarea" placeholder="请输入任务说明" />
         </el-form-item>
-        <el-form-item label="目标" prop="goal">
+        <el-form-item label="任务目标" prop="goal">
           <el-input v-model="form.goal" type="textarea" placeholder="请输入目标" />
-        </el-form-item>
-        <el-form-item label="完成比例(%)" prop="completionRatio">
-          <el-input v-model="form.completionRatio"  placeholder="请输入完成比例" />
         </el-form-item>
         <el-form-item label="完成结果" prop="completionResult">
           <el-select v-model="form.completionResult" placeholder="请选择完成结果">
@@ -188,18 +184,21 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="完成日期" prop="completionDate">
+        <el-form-item label="完成比例(%)" prop="completionRatio">
+          <el-input v-model="form.completionRatio"  placeholder="请输入完成比例" />
+        </el-form-item>
+        <el-form-item label="任务开始日期" prop="extensionField1">
           <el-date-picker clearable
-                          v-model="form.completionDate"
+                          v-model="form.extensionField1"
                           type="date"
                           value-format="YYYY-MM-DD"
-                          placeholder="请选择完成日期">
+                          placeholder="请选择日期">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="工作时长(h)" prop="workDuration">
           <el-input v-model="form.workDuration"  placeholder="请输入工作时长" />
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
+        <el-form-item label="个人评价" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
@@ -214,7 +213,7 @@
 </template>
 
 <script setup name="Perf">
-import { listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList } from "@/api/system/perf";
+import {listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList} from "@/api/system/perf";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
@@ -237,17 +236,14 @@ const data = reactive({
     pageSize: 10,
     workType: null,
     projectType: null,
-    searchDate: null,
+    completionDate: null,
   },
   rules: {
     workType: [
       { required: true, message: "工作类型不能为空", trigger: "change" }
     ],
     projectType: [
-      { required: true, message: "项目类型不能为空", trigger: "change" }
-    ],
-    completionDate: [
-      { required: true, message: "完成日期不能为空", trigger: "change" }
+      { required: true, message: "任务类型不能为空", trigger: "change" }
     ],
     completionRatio: [
       { required: true, message: "完成比列不能为空", trigger: "blur" },
