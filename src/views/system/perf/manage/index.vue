@@ -65,8 +65,8 @@
       </el-form-item>
     </el-form>
 
-    <Chart v-if="showChart"></Chart>
-    <div v-else>
+    <div v-show="showChart" id="commonLegend"></div>
+    <div v-show="showBar">
       <el-row :gutter="10" class="mb8">
         <!--      <el-col :span="1.5">-->
         <!--        <el-button-->
@@ -229,8 +229,17 @@
 </template>
 
 <script setup name="Perf">
-import {listPerf, getPerf, delPerf, addPerf, updatePerf, deptTreeSelect, getUserList} from "@/api/system/perf";
-import Chart from './chart.vue';
+import {
+  listPerf,
+  getPerf,
+  delPerf,
+  addPerf,
+  updatePerf,
+  deptTreeSelect,
+  getUserList,
+  getMonthWorkHour
+} from "@/api/system/perf";
+import * as echarts from "echarts";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
@@ -246,7 +255,10 @@ const total = ref(0);
 const title = ref("");
 const deptOptions = ref(undefined);
 var showChart = true;
+var showBar = false;
 const userList = ref([]);
+let myChart;
+var deptId = ref("");
 
 const data = reactive({
   form: {},
@@ -306,6 +318,54 @@ function getList() {
   });
 }
 
+function pieChart(){
+    getMonthWorkHour(queryParams.value).then(response => {
+      var series = [];
+      var data = response.data;;
+      var dom = document.getElementById("commonLegend")
+      myChart = echarts.init(dom);
+
+      // 遍历数据，生成饼图系列
+      for (var i = 0; i < data.length; i++) {
+        var workerData = data[i].workerData;
+        series.push({
+          type: 'pie',
+          radius: ['10%', '18%'],
+          center: [((i % 6) * 15 + 15) + '%', (Math.floor(i / 6) * 30 + 15) + '%'],
+          encode: {
+            itemName: 'name',
+            value: 'value'
+          },
+          label: {
+            position: 'inner',
+            formatter: '{c}h',
+            color: 'black',
+            fontWeight: 'bold',
+            fontSize: 12
+          },
+          labelLine: {
+            show: false
+          },
+          data: workerData
+        });
+        // 在每个echarts图下生成序号
+        var chartDiv = document.createElement('div');
+        chartDiv.innerText = data[i].name;
+        chartDiv.style.position = 'absolute';
+        chartDiv.style.left = ((i % 6) * 15 + 13) + '%';
+        chartDiv.style.top = (Math.floor(i / 6) * 30 + 25) + '%'; // 调整序号的上下位置
+        dom.appendChild(chartDiv);
+      }
+      var option = {
+        legend: {},
+        tooltip: {},
+        series: series
+      };
+      myChart.setOption(option);
+      window.addEventListener('resize', myChart.resize);
+    });
+}
+
 /** 获取当前员工部门员工姓名 */
 function empList() {
   getUserList().then(response => {
@@ -321,8 +381,14 @@ function getDeptTree() {
 };
 /** 节点单击事件 */
 function handleNodeClick(data) {
-  queryParams.value.empDeptid = data.id;
-  handleQuery();
+  if(showChart == true){
+    myChart.dispose();//销毁
+    queryParams.value.empDeptid = data.id;
+    pieChart();
+  }else if(showBar == true){
+    queryParams.value.empDeptid = data.id;
+    handleQuery();
+  }
 };
 
 // 取消按钮
@@ -361,6 +427,7 @@ function reset() {
 function handleQuery() {
   queryParams.value.pageNum = 1;
   showChart=false;
+  showBar = true;
   getList();
 }
 
@@ -368,7 +435,6 @@ function handleQuery() {
 function resetQuery() {
   proxy.resetForm("queryRef");
   handleQuery();
-  showChart=true;
 }
 
 // 多选框选中数据
@@ -437,6 +503,7 @@ function handleExport() {
 getDeptTree();
 getList();
 empList();
+pieChart();
 </script>
 <style>
 .ellipsis-text {
@@ -449,6 +516,13 @@ empList();
   white-space: normal;
   overflow: visible;
   text-overflow: inherit;
+}
+#commonLegend {
+  overflow: auto;
+  position: relative;
+  top:0px;
+  height: 800px;
+  margin:0;
 }
 </style>
 

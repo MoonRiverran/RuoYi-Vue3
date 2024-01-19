@@ -11,7 +11,7 @@ export function listPerf(query) {
 
 export function getMonthWorkHour(query) {
   return request({
-    url: '/system/perf/charts',
+    url: '/system/perf/charts' ,
     method: 'get',
     params: query
   })
