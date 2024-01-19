@@ -40,14 +40,24 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="完成年月" prop="searchDate" style="margin-right:0px">
-        <el-date-picker style="width:80%" clearable
+      <el-form-item label="选择月份" prop="searchDate">
+        <el-date-picker clearable
                         v-model="queryParams.searchDate"
                         type="month"
                         format="YYYY年MM月"
                         value-format="YYYY-MM"
-                        placeholder="请选择完成年月">
+                        placeholder="请选择年月">
         </el-date-picker>
+      </el-form-item>
+      <el-form-item label="选择人员" prop="employeeNumber">
+        <el-select v-model="queryParams.employeeNumber" placeholder="请选择员工" clearable>
+          <el-option
+              v-for="(item, index) in userList"
+              :key="index"
+              :value="item.userName"
+              :label="`${item.nickName}：${item.userName}`"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -219,7 +229,7 @@
 </template>
 
 <script setup name="Perf">
-import { listPerf, getPerf, delPerf, addPerf, updatePerf, deptTreeSelect } from "@/api/system/perf";
+import {listPerf, getPerf, delPerf, addPerf, updatePerf, deptTreeSelect, getUserList} from "@/api/system/perf";
 import Chart from './chart.vue';
 
 const { proxy } = getCurrentInstance();
@@ -236,6 +246,7 @@ const total = ref(0);
 const title = ref("");
 const deptOptions = ref(undefined);
 var showChart = true;
+const userList = ref([]);
 
 const data = reactive({
   form: {},
@@ -292,6 +303,13 @@ function getList() {
     perfList.value = response.rows;
     total.value = response.total;
     loading.value = false;
+  });
+}
+
+/** 获取当前员工部门员工姓名 */
+function empList() {
+  getUserList().then(response => {
+    userList.value = response.data;
   });
 }
 
@@ -418,6 +436,7 @@ function handleExport() {
 }
 getDeptTree();
 getList();
+empList();
 </script>
 <style>
 .ellipsis-text {

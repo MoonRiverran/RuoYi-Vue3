@@ -1,16 +1,6 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="员工姓名" prop="employeeNumber">
-        <el-select v-model="queryParams.employeeNumber" placeholder="请选择员工" clearable>
-          <el-option
-              v-for="(item, index) in userList"
-              :key="index"
-              :value="item.userName"
-              :label="`${item.nickName}：${item.userName}`"
-          />
-        </el-select>
-      </el-form-item>
       <el-form-item label="工作类型" prop="workType">
         <el-select v-model="queryParams.workType" placeholder="请选择工作类型" clearable>
           <el-option
@@ -31,14 +21,23 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="完成年月" prop="searchDate">
-        <el-date-picker clearable
-                        v-model="queryParams.searchDate"
-                        type="month"
-                        format="YYYY年MM月"
-                        value-format="YYYY-MM"
-                        placeholder="请选择完成年月">
-        </el-date-picker>
+      <el-form-item label="选择月份" prop="searchDate">
+        <el-date-picker
+            v-model="queryParams.searchDate"
+            type="month"
+            format="YYYY年MM月"
+            value-format="YYYY-MM"
+            placeholder="请选择年月"/>
+      </el-form-item>
+      <el-form-item label="选择人员" prop="employeeNumber">
+        <el-select v-model="queryParams.employeeNumber" placeholder="请选择员工" clearable>
+          <el-option
+              v-for="(item, index) in userList"
+              :key="index"
+              :value="item.userName"
+              :label="`${item.nickName}：${item.userName}`"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -121,18 +120,17 @@
       <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
       <el-table-column label="任务开始日期" align="center" prop="extensionField1" width="180">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.completionDate, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="填报时间" align="center" prop="createTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="个人评价" align="center" prop="remark" >
         <template #default="scope">
-          <div class="ellipsis-text" v-tooltip="scope.row.remark">{{ scope.row.remark }}</div>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:perf:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:perf:remove']">删除</el-button>
+          <dict-tag :options="self_comment" :value="scope.row.remark"/>
         </template>
       </el-table-column>
     </el-table>
@@ -184,10 +182,12 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <div v-if="form.completionResult === 'CR002'">
         <el-form-item label="完成比例(%)" prop="completionRatio">
           <el-input v-model="form.completionRatio"  placeholder="请输入完成比例" />
         </el-form-item>
-        <el-form-item label="任务开始日期" prop="extensionField1">
+        </div>
+        <el-form-item label="开始日期" prop="extensionField1">
           <el-date-picker clearable
                           v-model="form.extensionField1"
                           type="date"
@@ -199,7 +199,14 @@
           <el-input v-model="form.workDuration"  placeholder="请输入工作时长" />
         </el-form-item>
         <el-form-item label="个人评价" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-select v-model="form.remark" placeholder="请选择个人评价">
+            <el-option
+                v-for="dict in self_comment"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            ></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -216,7 +223,7 @@
 import {listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList} from "@/api/system/perf";
 
 const { proxy } = getCurrentInstance();
-const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
+const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
 
 const perfList = ref([]);
 const open = ref(false);
@@ -233,10 +240,10 @@ const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
+    pageSize: 15,
     workType: null,
     projectType: null,
-    completionDate: null,
+    searchDate: getDate(),
   },
   rules: {
     workType: [
@@ -245,8 +252,20 @@ const data = reactive({
     projectType: [
       { required: true, message: "任务类型不能为空", trigger: "change" }
     ],
+    projectDescription: [
+      { required: true, message: "任务说明不能为空", trigger: "change" }
+    ],
+    goal: [
+      { required: true, message: "任务目标不能为空", trigger: "change" }
+    ],
+    completionResult: [
+      { required: true, message: "完成结果不能为空", trigger: "change" }
+    ],
+    extensionField1: [
+      { required: true, message: "任务开始日期不能为空", trigger: "change" }
+    ],
     completionRatio: [
-      { required: true, message: "完成比列不能为空", trigger: "blur" },
+      { required: true, message: "完成比例不能为空", trigger: "blur" },
       {
         pattern: /^[0-9]+(\.[0-9]+)?$/,
         message: "请输入数字",
@@ -399,6 +418,17 @@ function handleExport() {
     ...queryParams.value
   }, `perf_${new Date().getTime()}.xlsx`)
 }
+
+function getDate() {
+  var now = new Date();
+  var year = now.getFullYear(); //得到年份
+  var month = now.getMonth(); //得到月份
+  month = month + 1;
+  month = month.toString().padStart(2, "0");
+  var defaultDate = `${year}-${month}`;
+  return defaultDate;
+}
+
 
 getList();
 empList();
