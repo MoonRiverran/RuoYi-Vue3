@@ -9,6 +9,15 @@ export function listPerf(query) {
   })
 }
 
+// 查询员工绩效列表
+export function personList(query) {
+  return request({
+    url: '/system/perf/personList',
+    method: 'get',
+    params: query
+  })
+}
+
 export function getMonthWorkHour(query) {
   return request({
     url: '/system/perf/charts' ,

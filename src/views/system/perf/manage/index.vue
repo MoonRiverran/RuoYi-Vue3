@@ -110,8 +110,8 @@
       </el-row>
       <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="员工姓名" align="center" prop="employeeName" />
-        <el-table-column label="员工工号" width="90" align="center" prop="employeeNumber" />
+        <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
+        <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
         <el-table-column label="工作类型" width="140" align="center" prop="workType">
           <template #default="scope">
             <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -141,12 +141,17 @@
         <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
         <el-table-column label="任务开始日期" align="center" prop="extensionField1" width="180">
           <template #default="scope">
-            <span>{{ parseTime(scope.row.completionDate, '{y}-{m}-{d}') }}</span>
+            <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="填报时间" align="center" prop="createTime" width="180">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
         <el-table-column label="个人评价" align="center" prop="remark" >
           <template #default="scope">
-            <div class="ellipsis-text" v-tooltip="scope.row.remark">{{ scope.row.remark }}</div>
+            <dict-tag :options="self_comment" :value="scope.row.remark"/>
           </template>
         </el-table-column>
       </el-table>
@@ -225,12 +230,62 @@
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog :title="title" v-model="openList" width="100%" append-to-body>
+      <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
+        <el-table-column label="员工姓名" align="center" prop="employeeName" />
+        <el-table-column label="员工工号" width="90" align="center" prop="employeeNumber" />
+        <el-table-column label="工作类型" width="140" align="center" prop="workType">
+          <template #default="scope">
+            <dict-tag :options="work_type" :value="scope.row.workType"/>
+          </template>
+        </el-table-column>
+        <el-table-column label="任务类型" align="center" prop="projectType">
+          <template #default="scope">
+            <dict-tag :options="project_type" :value="scope.row.projectType"/>
+          </template>
+        </el-table-column>
+        <el-table-column label="任务说明" align="center" prop="projectDescription">
+          <template #default="scope">
+            <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="任务目标" align="center" prop="goal" >
+          <template #default="scope">
+            <div class="ellipsis-text" v-tooltip="scope.row.goal">{{ scope.row.goal }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="完成结果" align="center" prop="completionResult">
+          <template #default="scope">
+            <dict-tag :options="completion_result" :value="scope.row.completionResult"/>
+          </template>
+        </el-table-column>
+        <el-table-column label="完成比例(%)" width="100" align="center" prop="completionRatio" />
+        <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
+        <el-table-column label="任务开始日期" align="center" prop="extensionField1" width="180">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="填报时间" align="center" prop="createTime" width="180">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="个人评价" align="center" prop="remark" >
+          <template #default="scope">
+            <dict-tag :options="self_comment" :value="scope.row.remark"/>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Perf">
 import {
   listPerf,
+  personList,
   getPerf,
   delPerf,
   addPerf,
@@ -242,10 +297,11 @@ import {
 import * as echarts from "echarts";
 
 const { proxy } = getCurrentInstance();
-const { work_type, project_type, completion_result } = proxy.useDict('work_type', 'project_type', 'completion_result');
+const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
 
 const perfList = ref([]);
 const open = ref(false);
+const openList = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -362,6 +418,16 @@ function pieChart(){
         series: series
       };
       myChart.setOption(option);
+      myChart.on('click', function (params) {
+        var idName = data[params.seriesIndex];
+        queryParams.value.workType = params.data.name;
+        queryParams.value.employeeNumber = idName.id;
+        personList(queryParams.value).then(response => {
+          perfList.value = response.rows;
+          openList.value = true;
+          title.value = idName.name + params.data.name +"明细";
+        });
+      });
       window.addEventListener('resize', myChart.resize);
     });
 }
