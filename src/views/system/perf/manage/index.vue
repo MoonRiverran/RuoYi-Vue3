@@ -21,22 +21,22 @@
       <el-col :span="20" :xs="24">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="工作类型" prop="workType"  style="margin-right:0px">
-        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" style="width:80%" clearable>
+        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" @change="getworkType" style="width:80%" clearable>
           <el-option
-              v-for="dict in work_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
+              v-for="item in workType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="任务类型" prop="projectType" style="margin-right:0px">
         <el-select v-model="queryParams.projectType" placeholder="请选择任务类型" style="width:80%" clearable>
           <el-option
-              v-for="dict in project_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
+              v-for="item in projectType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
           />
         </el-select>
       </el-form-item>
@@ -295,6 +295,7 @@ import {
   getMonthWorkHour
 } from "@/api/system/perf";
 import * as echarts from "echarts";
+import workTypeArr from "@/views/system/perf/worktype.json";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
@@ -315,6 +316,24 @@ var showBar = false;
 const userList = ref([]);
 let myChart;
 var deptId = ref("");
+
+const workType = computed(() => {
+  return workTypeArr.map((item) => {
+    return { value: item.value, label: item.label };
+  });
+});
+
+var projectType = ref([]);
+
+function getworkType(){
+  const newVal = queryParams.value.workType;
+  const selectedWorkTypeObj = workTypeArr.find(
+      (item) => item.value === newVal
+  );
+  projectType.value = selectedWorkTypeObj
+      ? selectedWorkTypeObj.projectType
+      : null;
+}
 
 const data = reactive({
   form: {},
@@ -377,7 +396,7 @@ function getList() {
 function pieChart(){
     getMonthWorkHour(queryParams.value).then(response => {
       var series = [];
-      var data = response.data;;
+      var data = response.data;
       var dom = document.getElementById("commonLegend")
       myChart = echarts.init(dom);
 
@@ -427,6 +446,8 @@ function pieChart(){
           openList.value = true;
           title.value = idName.name + params.data.name +"明细";
         });
+        queryParams.value.workType ="";
+        queryParams.value.employeeNumber = "";
       });
       window.addEventListener('resize', myChart.resize);
     });
@@ -491,10 +512,12 @@ function reset() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.value.pageNum = 1;
-  showChart=false;
-  showBar = true;
-  getList();
+  if(queryParams.value.workType != null || queryParams.value.projectType != null || queryParams.value.searchDate != null || queryParams.value.employeeNumber != null){
+    queryParams.value.pageNum = 1;
+    showChart=false;
+    showBar = true;
+    getList();
+  }
 }
 
 /** 重置按钮操作 */

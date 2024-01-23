@@ -2,22 +2,22 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="工作类型" prop="workType">
-        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" clearable>
+        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" @change="getworkType" clearable>
           <el-option
-              v-for="dict in work_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
+              v-for="item in workType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="任务类型" prop="projectType">
         <el-select v-model="queryParams.projectType" placeholder="请选择任务类型" clearable>
           <el-option
-              v-for="dict in project_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
+              v-for="item in projectType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
           />
         </el-select>
       </el-form-item>
@@ -147,30 +147,30 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="perfRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="工作类型" prop="workType">
-          <el-select v-model="form.workType" placeholder="请选择工作类型">
+          <el-select v-model="form.workType" @change="getFormworkType" placeholder="请选择工作类型">
             <el-option
-                v-for="dict in work_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
+                v-for="item in workType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="任务类型" prop="projectType">
           <el-select v-model="form.projectType" placeholder="请选择任务类型">
             <el-option
-                v-for="dict in project_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
+                v-for="item in projectType"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="任务说明" prop="projectDescription">
-          <el-input v-model="form.projectDescription" type="textarea" placeholder="请输入任务说明" />
+          <el-input v-model="form.projectDescription" type="textarea" rows="5" cols="33" placeholder="请输入任务说明"/>
         </el-form-item>
         <el-form-item label="任务目标" prop="goal">
-          <el-input v-model="form.goal" type="textarea" placeholder="请输入目标" />
+          <el-input v-model="form.goal" type="textarea" rows="5" cols="33" placeholder="请输入目标" />
         </el-form-item>
         <el-form-item label="完成结果" prop="completionResult">
           <el-select v-model="form.completionResult" placeholder="请选择完成结果">
@@ -221,6 +221,7 @@
 
 <script setup name="Perf">
 import {listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList} from "@/api/system/perf";
+import workTypeArr from "@/views/system/perf/worktype.json";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
@@ -235,6 +236,34 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const userList = ref([]);
+
+const workType = computed(() => {
+  return workTypeArr.map((item) => {
+    return { value: item.value, label: item.label };
+  });
+});
+
+var projectType = ref([]);
+
+function getworkType(){
+  const newVal = queryParams.value.workType;
+  const selectedWorkTypeObj = workTypeArr.find(
+      (item) => item.value === newVal
+  );
+  projectType.value = selectedWorkTypeObj
+      ? selectedWorkTypeObj.projectType
+      : null;
+}
+
+function getFormworkType(){
+  const newVal = form.value.workType;
+  const selectedWorkTypeObj = workTypeArr.find(
+      (item) => item.value === newVal
+  );
+  projectType.value = selectedWorkTypeObj
+      ? selectedWorkTypeObj.projectType
+      : null;
+}
 
 const data = reactive({
   form: {},
@@ -444,5 +473,8 @@ empList();
   white-space: normal;
   overflow: visible;
   text-overflow: inherit;
+}
+.custom-input {
+  height: 100px;
 }
 </style>
