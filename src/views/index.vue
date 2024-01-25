@@ -296,8 +296,8 @@ const data = reactive({
     completionRatio: [
       { required: true, message: "完成比例不能为空", trigger: "blur" },
       {
-        pattern: /^[0-9]+(\.[0-9]+)?$/,
-        message: "请输入数字",
+        pattern: /^[0-9]*[1-9][0-9]*$/,
+        message: "请输入正整数",
         trigger: "blur"
       },
       {
@@ -313,8 +313,8 @@ const data = reactive({
     workDuration: [
       { required: true, message: "工作时长不能为空", trigger: "blur" },
       {
-        pattern: /^[0-9]+(\.[0-9]+)?$/,
-        message: "请输入数字",
+        pattern: /^[0-9]*[1-9][0-9]*$/,
+        message: "请输入正整数",
         trigger: "blur"
       }
     ]
