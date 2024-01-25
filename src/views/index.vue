@@ -14,7 +14,7 @@
       <el-form-item label="任务类型" prop="projectType">
         <el-select v-model="queryParams.projectType" placeholder="请选择任务类型" clearable>
           <el-option
-              v-for="item in projectType"
+              v-for="item in project_Type"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -87,48 +87,48 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
       <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
-      <el-table-column label="工作类型" width="140" align="center" prop="workType">
+      <el-table-column label="工作类型" width="140" align="center" prop="workType" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
         </template>
       </el-table-column>
-      <el-table-column label="任务类型" align="center" prop="projectType">
+      <el-table-column label="任务类型" align="center" prop="projectType" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="project_type" :value="scope.row.projectType"/>
         </template>
       </el-table-column>
-      <el-table-column label="任务说明" align="center" prop="projectDescription">
+      <el-table-column label="任务说明" align="center" prop="projectDescription" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="任务目标" align="center" prop="goal" >
+      <el-table-column label="任务目标" align="center" prop="goal" :sort-orders="['descending','ascending']" sortable="custom" >
         <template #default="scope">
           <div class="ellipsis-text" v-tooltip="scope.row.goal">{{ scope.row.goal }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="完成结果" align="center" prop="completionResult">
+      <el-table-column label="完成结果" align="center" prop="completionResult" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="completion_result" :value="scope.row.completionResult"/>
         </template>
       </el-table-column>
-      <el-table-column label="完成比例(%)" width="100" align="center" prop="completionRatio" />
-      <el-table-column label="工作时长(h)"  width="100" align="center" prop="workDuration" />
-      <el-table-column label="任务开始日期" align="center" prop="extensionField1" width="180">
+      <el-table-column label="完成比例(%)" width="130" align="center" prop="completionRatio" :sort-orders="['descending','ascending']" sortable="custom"/>
+      <el-table-column label="工作时长(h)"  width="120" align="center" prop="workDuration" :sort-orders="['descending','ascending']" sortable="custom"/>
+      <el-table-column label="任务开始日期" align="center" prop="extensionField1"  :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="填报时间" align="center" prop="createTime" width="180">
+      <el-table-column label="填报时间" align="center" prop="createTime"  :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="个人评价" align="center" prop="remark" >
+      <el-table-column label="个人评价" align="center" prop="remark" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="self_comment" :value="scope.row.remark"/>
         </template>
@@ -159,7 +159,7 @@
         <el-form-item label="任务类型" prop="projectType">
           <el-select v-model="form.projectType" placeholder="请选择任务类型">
             <el-option
-                v-for="item in projectType"
+                v-for="item in ptdicts"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"
@@ -225,7 +225,6 @@ import workTypeArr from "@/views/system/perf/worktype.json";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
-
 const perfList = ref([]);
 const open = ref(false);
 const loading = ref(true);
@@ -236,6 +235,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const userList = ref([]);
+const project_Type = ref([]);
 
 const workType = computed(() => {
   return workTypeArr.map((item) => {
@@ -243,27 +243,45 @@ const workType = computed(() => {
   });
 });
 
-var projectType = ref([]);
+let project = [];
+workTypeArr.forEach((item) => {
+  item.projectType.forEach(item2 => {
+    project.push(item2);
+  })
+})
+
+let ptdicts =Array.from(new Map(project.map(item => [item['value'],item])).values());
+
+function handleSortChange(column){
+  queryParams.value.orderByColumn  = column.prop;
+  queryParams.value.isAsc = column.order;
+  getList();
+}
 
 function getworkType(){
+  queryParams.value.projectType = null;
   const newVal = queryParams.value.workType;
   const selectedWorkTypeObj = workTypeArr.find(
       (item) => item.value === newVal
   );
-  projectType.value = selectedWorkTypeObj
+  project_Type.value = selectedWorkTypeObj
       ? selectedWorkTypeObj.projectType
       : null;
 }
 
 function getFormworkType(){
+  form.value.projectType = null;
+  ptdicts = null;
   const newVal = form.value.workType;
   const selectedWorkTypeObj = workTypeArr.find(
       (item) => item.value === newVal
   );
-  projectType.value = selectedWorkTypeObj
+  ptdicts = selectedWorkTypeObj
       ? selectedWorkTypeObj.projectType
       : null;
 }
+
+
 
 const data = reactive({
   form: {},
