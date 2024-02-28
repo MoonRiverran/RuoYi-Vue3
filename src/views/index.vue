@@ -89,6 +89,11 @@
 
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="工作归属月份" align="center" prop="fillDate"  width="130" :sort-orders="['descending','ascending']" sortable="custom">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.fillDate, '{y}-{m}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
       <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
       <el-table-column label="工作类型" width="140" align="center" prop="workType" :sort-orders="['descending','ascending']" sortable="custom">
@@ -146,6 +151,15 @@
     <!-- 添加或修改员工绩效对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="perfRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="填报月份" prop="fillDate" >
+          <el-date-picker clearable
+                          v-model="form.fillDate"
+                          type="month"
+                          value-format="YYYY-MM"
+                          placeholder="请选择填报月份"
+                          :readonly=isReadonly>
+          </el-date-picker>
+        </el-form-item>
         <el-form-item label="工作类型" prop="workType">
           <el-select v-model="form.workType" @change="getFormworkType" placeholder="请选择工作类型">
             <el-option
@@ -157,7 +171,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="任务类型" prop="projectType">
-          <el-select v-model="form.projectType" placeholder="请选择任务类型">
+          <el-select v-model="form.projectType" @change="getFormProjectType" placeholder="请选择任务类型">
             <el-option
                 v-for="item in ptdicts"
                 :key="item.value"
@@ -192,7 +206,9 @@
                           v-model="form.extensionField1"
                           type="date"
                           value-format="YYYY-MM-DD"
-                          placeholder="请选择日期">
+                          placeholder="请选择日期"
+                          :picker-options="pickerOptions"
+          >
           </el-date-picker>
         </el-form-item>
         <el-form-item label="工作时长(h)" prop="workDuration">
@@ -222,6 +238,8 @@
 <script setup name="Perf">
 import {listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList} from "@/api/system/perf";
 import workTypeArr from "@/views/system/perf/worktype.json";
+import moment from 'moment';
+import { getConfigKey } from "@/api/system/config";
 
 const { proxy } = getCurrentInstance();
 const { work_type, project_type, completion_result, self_comment } = proxy.useDict('work_type', 'project_type', 'completion_result', 'self_comment');
@@ -236,6 +254,10 @@ const total = ref(0);
 const title = ref("");
 const userList = ref([]);
 const project_Type = ref([]);
+const dataList = ref([]);
+let year = ref('');
+let month = ref('');
+let isReadonly = true;
 
 const workType = computed(() => {
   return workTypeArr.map((item) => {
@@ -250,7 +272,18 @@ workTypeArr.forEach((item) => {
   })
 })
 
+function setReadonly()  {
+    getConfigKey("sys.perf.fillDate").then(response => {
+      let m = response.msg;
+      if (m == 1) {
+        isReadonly = false;
+      }
+    });
+};
+
 let ptdicts =Array.from(new Map(project.map(item => [item['value'],item])).values());
+let ptdictscopy =Array.from(new Map(project.map(item => [item['value'],item])).values());
+
 
 function handleSortChange(column){
   queryParams.value.orderByColumn  = column.prop;
@@ -281,8 +314,6 @@ function getFormworkType(){
       : null;
 }
 
-
-
 const data = reactive({
   form: {},
   queryParams: {
@@ -307,6 +338,9 @@ const data = reactive({
     ],
     completionResult: [
       { required: true, message: "完成结果不能为空", trigger: "change" }
+    ],
+    fillDate: [
+      { required: true, message: "填报月份不能为空", trigger: "change" }
     ],
     extensionField1: [
       { required: true, message: "任务开始日期不能为空", trigger: "change" }
@@ -377,6 +411,7 @@ function reset() {
     completionRatio: null,
     completionResult: null,
     completionDate: null,
+    fillDate: null,
     workDuration: null,
     extensionField1: null,
     extensionField2: null,
@@ -412,6 +447,7 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  form.value.fillDate = getDate();
   open.value = true;
   title.value = "添加员工绩效";
 }
@@ -419,6 +455,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
+  ptdicts = ptdictscopy;
   const _empId = row.empId || ids.value
   getPerf(_empId).then(response => {
     form.value = response.data;
@@ -479,6 +516,7 @@ function getDate() {
 
 getList();
 empList();
+setReadonly();
 </script>
 <style>
 .ellipsis-text {

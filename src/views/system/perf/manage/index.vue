@@ -394,6 +394,7 @@ function getList() {
 }
 
 function pieChart(){
+    queryParams.value.pageSize = 18;
     getMonthWorkHour(queryParams.value).then(response => {
       var series = [];
       var data = response.data;
