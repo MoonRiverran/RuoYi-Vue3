@@ -61,7 +61,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button icon="Refresh" @click="resetQuery">图表切换</el-button>
       </el-form-item>
     </el-form>
 
@@ -342,7 +342,7 @@ const data = reactive({
     pageSize: 10,
     workType: null,
     projectType: null,
-    searchDate: null,
+    searchDate: getDate(),
   },
   rules: {
     workType: [
@@ -391,6 +391,16 @@ function getList() {
     total.value = response.total;
     loading.value = false;
   });
+}
+
+function getDate() {
+  var now = new Date();
+  var year = now.getFullYear(); //得到年份
+  var month = now.getMonth(); //得到月份
+  month = month + 1;
+  month = month.toString().padStart(2, "0");
+  var defaultDate = `${year}-${month}`;
+  return defaultDate;
 }
 
 function pieChart(){
@@ -475,6 +485,7 @@ function handleNodeClick(data) {
     pieChart();
   }else if(showBar == true){
     queryParams.value.empDeptid = data.id;
+    console.log(queryParams.value);
     handleQuery();
   }
 };
@@ -513,18 +524,30 @@ function reset() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
-  if(queryParams.value.workType != null || queryParams.value.projectType != null || queryParams.value.searchDate != null || queryParams.value.employeeNumber != null){
-    queryParams.value.pageNum = 1;
-    showChart=false;
-    showBar = true;
-    getList();
-  }
+    if(showBar == true){
+      queryParams.value.pageNum = 1;
+      getList();
+    }
+    if(showChart == true){
+      myChart.dispose();//销毁
+      pieChart();
+    }
 }
 
-/** 重置按钮操作 */
+/** 切换按钮操作 */
 function resetQuery() {
-  proxy.resetForm("queryRef");
-  handleQuery();
+  // proxy.resetForm("queryRef");
+  if(showChart == true){
+    showChart = false;
+    showBar = true;
+  }else if(showBar == true){
+    showChart=true;
+    showBar = false;
+    myChart.dispose();//销毁
+    pieChart();
+  }
+  queryParams.value.pageNum = 1;
+  getList();
 }
 
 // 多选框选中数据

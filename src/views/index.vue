@@ -331,10 +331,20 @@ const data = reactive({
       { required: true, message: "任务类型不能为空", trigger: "change" }
     ],
     projectDescription: [
-      { required: true, message: "任务说明不能为空", trigger: "change" }
+      { required: true, message: "任务说明不能为空", trigger: "change" },
+      {
+        max: 500,
+        message: '长度在 0 到 500 个字符',
+        trigger: 'blur'
+      }
     ],
     goal: [
-      { required: true, message: "任务目标不能为空", trigger: "change" }
+      { required: true, message: "任务目标不能为空", trigger: "change" },
+      {
+        max: 500,
+        message: '长度在 0 到 500 个字符',
+        trigger: 'blur'
+      }
     ],
     completionResult: [
       { required: true, message: "完成结果不能为空", trigger: "change" }
@@ -368,6 +378,11 @@ const data = reactive({
         pattern: /^[0-9]*[1-9][0-9]*$/,
         message: "请输入正整数",
         trigger: "blur"
+      },
+      {
+        max: 5,
+        message: '长度在 0 到 5 个字符',
+        trigger: 'blur'
       }
     ]
   }
