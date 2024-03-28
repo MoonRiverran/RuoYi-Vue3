@@ -68,15 +68,6 @@
     <div v-show="showChart" id="commonLegend"></div>
     <div v-show="showBar">
       <el-row :gutter="10" class="mb8">
-        <!--      <el-col :span="1.5">-->
-        <!--        <el-button-->
-        <!--            type="primary"-->
-        <!--            plain-->
-        <!--            icon="Plus"-->
-        <!--            @click="handleAdd"-->
-        <!--            v-hasPermi="['system:perf:add']"-->
-        <!--        >新增</el-button>-->
-        <!--      </el-col>-->
         <el-col :span="1.5">
           <el-button
               type="success"
@@ -87,16 +78,6 @@
               v-hasPermi="['system:perf:edit']"
           >修改</el-button>
         </el-col>
-        <!--      <el-col :span="1.5">-->
-        <!--        <el-button-->
-        <!--            type="danger"-->
-        <!--            plain-->
-        <!--            icon="Delete"-->
-        <!--            :disabled="multiple"-->
-        <!--            @click="handleDelete"-->
-        <!--            v-hasPermi="['system:perf:remove']"-->
-        <!--        >删除</el-button>-->
-        <!--      </el-col>-->
         <el-col :span="1.5">
           <el-button
               type="warning"
@@ -108,10 +89,10 @@
         </el-col>
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
-      <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange">
+      <el-table v-loading="loading" :data="perfList"  @selection-change="handleSelectionChange" border resizable auto-resize="true">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
-        <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
+        <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" v-if="showEmployeeName"/>
+        <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" v-if="showEmployeeNumber"/>
         <el-table-column label="工作类型" width="140" align="center" prop="workType">
           <template #default="scope">
             <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -122,15 +103,9 @@
             <dict-tag :options="project_type" :value="scope.row.projectType"/>
           </template>
         </el-table-column>
-        <el-table-column label="任务说明" align="center" prop="projectDescription">
-          <template #default="scope">
-            <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
-          </template>
+        <el-table-column label="任务说明" align="center" prop="projectDescription" :show-overflow-tooltip="true">
         </el-table-column>
-        <el-table-column label="任务目标" align="center" prop="goal" >
-          <template #default="scope">
-            <div class="ellipsis-text" v-tooltip="scope.row.goal">{{ scope.row.goal }}</div>
-          </template>
+        <el-table-column label="任务目标" align="center" prop="goal" :show-overflow-tooltip="true">
         </el-table-column>
         <el-table-column label="完成结果" align="center" prop="completionResult">
           <template #default="scope">
@@ -144,14 +119,19 @@
             <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="填报时间" align="center" prop="createTime" width="180">
+        <el-table-column label="填报时间" align="center" prop="createTime" width="180" v-if="false">
           <template #default="scope">
             <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="个人评价" align="center" prop="remark" >
+        <el-table-column label="个人评价" align="center" prop="remark" v-if="false">
           <template #default="scope">
             <dict-tag :options="self_comment" :value="scope.row.remark"/>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="80" align="center" class-name="small-padding fixed-width">
+          <template #default="scope">
+            <el-button link type="primary" icon="View" @click="showDetail(scope.row)" >详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -316,6 +296,10 @@ var showBar = false;
 const userList = ref([]);
 let myChart;
 var deptId = ref("");
+let showEmployeeName = ref(true);
+let showEmployeeNumber = ref(true);
+let isDetail = ref(false);
+let isUpdate = ref(true);
 
 const workType = computed(() => {
   return workTypeArr.map((item) => {
@@ -526,6 +510,13 @@ function reset() {
 function handleQuery() {
     if(showBar == true){
       queryParams.value.pageNum = 1;
+      if(queryParams.value.searchDate != null && (queryParams.value.employeeNumber != null && queryParams.value.employeeNumber != "")){
+        showEmployeeName = false;
+        showEmployeeNumber = false;
+      }else{
+        showEmployeeName = true;
+        showEmployeeNumber = true;
+      }
       getList();
     }
     if(showChart == true){
@@ -540,6 +531,13 @@ function resetQuery() {
   if(showChart == true){
     showChart = false;
     showBar = true;
+    if(queryParams.value.searchDate != null && (queryParams.value.employeeNumber != null && queryParams.value.employeeNumber != "")){
+      showEmployeeName = false;
+      showEmployeeNumber = false;
+    }else{
+      showEmployeeName = true;
+      showEmployeeNumber = true;
+    }
   }else if(showBar == true){
     showChart=true;
     showBar = false;
@@ -560,6 +558,8 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  isDetail = false;
+  isUpdate = true;
   open.value = true;
   title.value = "添加员工绩效";
 }
@@ -569,11 +569,27 @@ function handleUpdate(row) {
   reset();
   const _empId = row.empId || ids.value
   getPerf(_empId).then(response => {
+    isDetail = false;
+    isUpdate = true;
     form.value = response.data;
     open.value = true;
     title.value = "修改员工绩效";
   });
 }
+
+/** 详情按钮操作 */
+function showDetail(row) {
+  reset();
+  const _empId = row.empId || ids.value
+  getPerf(_empId).then(response => {
+    isDetail = true;
+    isUpdate = false;
+    form.value = response.data;
+    open.value = true;
+    title.value = "员工绩效详情";
+  });
+}
+
 
 /** 提交按钮 */
 function submitForm() {
@@ -638,4 +654,6 @@ pieChart();
   margin:0;
 }
 </style>
-
+<style lang="css">
+.el-popper{font-size: 14px; max-width:20%; }
+</style>

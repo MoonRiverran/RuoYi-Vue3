@@ -87,15 +87,15 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
+    <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange" @sort-change="handleSortChange" border resizable auto-resize="true" >
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="工作归属月份" align="center" prop="fillDate"  width="130" :sort-orders="['descending','ascending']" sortable="custom">
+      <el-table-column label="工作归属月份" align="center" prop="fillDate"  width="130" :sort-orders="['descending','ascending']" sortable="custom" v-if="showFillDate">
         <template #default="scope">
           <span>{{ parseTime(scope.row.fillDate, '{y}-{m}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" />
-      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" />
+      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" v-if="showEmployeeName"/>
+      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" v-if="showEmployeeNumber"/>
       <el-table-column label="工作类型" width="140" align="center" prop="workType" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -106,15 +106,9 @@
           <dict-tag :options="project_type" :value="scope.row.projectType"/>
         </template>
       </el-table-column>
-      <el-table-column label="任务说明" align="center" prop="projectDescription" :sort-orders="['descending','ascending']" sortable="custom">
-        <template #default="scope">
-          <div class="ellipsis-text" v-tooltip="scope.row.projectDescription">{{ scope.row.projectDescription }}</div>
-        </template>
+      <el-table-column label="任务说明" align="center" prop="projectDescription" :sort-orders="['descending','ascending']" sortable="custom" :show-overflow-tooltip="true">
       </el-table-column>
-      <el-table-column label="任务目标" align="center" prop="goal" :sort-orders="['descending','ascending']" sortable="custom" >
-        <template #default="scope">
-          <div class="ellipsis-text" v-tooltip="scope.row.goal">{{ scope.row.goal }}</div>
-        </template>
+      <el-table-column label="任务目标" align="center" prop="goal" :sort-orders="['descending','ascending']" sortable="custom" :show-overflow-tooltip="true">
       </el-table-column>
       <el-table-column label="完成结果" align="center" prop="completionResult" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
@@ -128,14 +122,19 @@
           <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="填报时间" align="center" prop="createTime"  :sort-orders="['descending','ascending']" sortable="custom">
+      <el-table-column label="填报时间" align="center" prop="createTime"  :sort-orders="['descending','ascending']" sortable="custom" v-if="false">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="个人评价" align="center" prop="remark" :sort-orders="['descending','ascending']" sortable="custom">
+      <el-table-column label="个人评价" align="center" prop="remark" :sort-orders="['descending','ascending']" sortable="custom" v-if="false">
         <template #default="scope">
           <dict-tag :options="self_comment" :value="scope.row.remark"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="80" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="View" @click="showDetail(scope.row)" >详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -149,8 +148,8 @@
     />
 
     <!-- 添加或修改员工绩效对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="perfRef" :model="form" :rules="rules" label-width="100px">
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body :close-on-click-modal="true" :lock-scroll="true">
+      <el-form ref="perfRef" :model="form" :rules="rules" label-width="100px" :disabled="isDetail">
         <el-form-item label="填报月份" prop="fillDate" >
           <el-date-picker clearable
                           v-model="form.fillDate"
@@ -161,7 +160,7 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="工作类型" prop="workType">
-          <el-select v-model="form.workType" @change="getFormworkType" placeholder="请选择工作类型">
+          <el-select v-model="form.workType" @change="getFormworkType" placeholder="请选择工作类型" :readonly="true">
             <el-option
                 v-for="item in workType"
                 :key="item.value"
@@ -227,7 +226,7 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button type="primary" @click="submitForm" v-if="isUpdate">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
@@ -258,6 +257,13 @@ const dataList = ref([]);
 let year = ref('');
 let month = ref('');
 let isReadonly = true;
+let showFillDate = ref(true);
+let showEmployeeName = ref(true);
+let showEmployeeNumber = ref(true);
+let isDetail = ref(false);
+let isUpdate = ref(true);
+
+
 
 const workType = computed(() => {
   return workTypeArr.map((item) => {
@@ -378,11 +384,6 @@ const data = reactive({
         pattern: /^[0-9]*[1-9][0-9]*$/,
         message: "请输入正整数",
         trigger: "blur"
-      },
-      {
-        max: 5,
-        message: '长度在 0 到 5 个字符',
-        trigger: 'blur'
       }
     ]
   }
@@ -443,12 +444,20 @@ function reset() {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
+  if(queryParams.value.searchDate != null && queryParams.value.employeeNumber != null){
+    showFillDate = false;
+    showEmployeeName = false;
+    showEmployeeNumber = false;
+  }
   getList();
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef");
+  showFillDate = true;
+  showEmployeeName = true;
+  showEmployeeNumber = true;
   handleQuery();
 }
 
@@ -462,6 +471,8 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  isDetail = false;
+  isUpdate = true;
   form.value.fillDate = getDate();
   open.value = true;
   title.value = "添加员工绩效";
@@ -473,11 +484,29 @@ function handleUpdate(row) {
   ptdicts = ptdictscopy;
   const _empId = row.empId || ids.value
   getPerf(_empId).then(response => {
+    isDetail = false;
+    isUpdate = true;
     form.value = response.data;
     open.value = true;
-    title.value = "修改员工绩效";
+    title.value = "员工绩效详情";
   });
 }
+
+
+/** 详情按钮操作 */
+function showDetail(row) {
+  reset();
+  ptdicts = ptdictscopy;
+  const _empId = row.empId || ids.value
+  getPerf(_empId).then(response => {
+    isDetail = true;
+    isUpdate = false;
+    form.value = response.data;
+    open.value = true;
+    title.value = "员工绩效详情";
+  });
+}
+
 
 /** 提交按钮 */
 function submitForm() {
@@ -533,19 +562,6 @@ getList();
 empList();
 setReadonly();
 </script>
-<style>
-.ellipsis-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px; /* 设置最大宽度 */
-}
-.ellipsis-text:hover {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: inherit;
-}
-.custom-input {
-  height: 100px;
-}
+<style lang="css">
+.el-popper{font-size: 14px; max-width:20%; }
 </style>
