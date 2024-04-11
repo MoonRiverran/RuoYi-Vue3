@@ -89,13 +89,13 @@
 
     <el-table v-loading="loading" :data="perfList" @selection-change="handleSelectionChange" @sort-change="handleSortChange" border resizable auto-resize="true" >
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="工作归属月份" align="center" prop="fillDate"  width="130" :sort-orders="['descending','ascending']" sortable="custom" v-if="showFillDate">
+      <el-table-column label="工作归属月份" align="center" prop="fillDate"  width="130" :sort-orders="['descending','ascending']" sortable="custom" v-show="showFillDate">
         <template #default="scope">
           <span>{{ parseTime(scope.row.fillDate, '{y}-{m}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" v-if="showEmployeeName"/>
-      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" v-if="showEmployeeNumber"/>
+      <el-table-column label="员工姓名" align="center" prop="employeeName"  v-hasPermi="['system:user:add']" v-show="showEmployeeName"/>
+      <el-table-column label="员工工号" align="center" prop="employeeNumber"  v-hasPermi="['system:user:add']" v-show="showEmployeeNumber"/>
       <el-table-column label="工作类型" width="140" align="center" prop="workType" :sort-orders="['descending','ascending']" sortable="custom">
         <template #default="scope">
           <dict-tag :options="work_type" :value="scope.row.workType"/>
@@ -122,12 +122,12 @@
           <span>{{ parseTime(scope.row.extensionField1, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="填报时间" align="center" prop="createTime"  :sort-orders="['descending','ascending']" sortable="custom" v-if="false">
+      <el-table-column label="填报时间" align="center" prop="createTime"  :sort-orders="['descending','ascending']" sortable="custom" v-show="false">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="个人评价" align="center" prop="remark" :sort-orders="['descending','ascending']" sortable="custom" v-if="false">
+      <el-table-column label="个人评价" align="center" prop="remark" :sort-orders="['descending','ascending']" sortable="custom" v-show="false">
         <template #default="scope">
           <dict-tag :options="self_comment" :value="scope.row.remark"/>
         </template>
@@ -195,7 +195,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <div v-if="form.completionResult === 'CR002'">
+        <div v-show="form.completionResult === 'CR002'">
         <el-form-item label="完成比例(%)" prop="completionRatio">
           <el-input v-model="form.completionRatio"  placeholder="请输入完成比例" />
         </el-form-item>
@@ -226,7 +226,7 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm" v-if="isUpdate">确 定</el-button>
+          <el-button type="primary" @click="submitForm" v-show="isUpdate">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
@@ -237,7 +237,6 @@
 <script setup name="Perf">
 import {listPerf, getPerf, delPerf, addPerf, updatePerf, getUserList} from "@/api/system/perf";
 import workTypeArr from "@/views/system/perf/worktype.json";
-import moment from 'moment';
 import { getConfigKey } from "@/api/system/config";
 
 const { proxy } = getCurrentInstance();
