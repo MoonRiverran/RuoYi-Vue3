@@ -20,8 +20,8 @@
       <!--绩效数据-->
       <el-col :span="20" :xs="24">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="工作类型" prop="workType"  style="margin-right:0px">
-        <el-select v-model="queryParams.workType" placeholder="请选择工作类型" @change="getworkType" style="width:80%" clearable>
+      <el-form-item label="工作类型" prop="workType"  style="margin-right:0px" >
+        <el-select v-model="queryParams.workType" placeholder="工作类型" @change="getworkType" style="width:80%" clearable>
           <el-option
               v-for="item in workType"
               :key="item.value"
@@ -30,8 +30,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="任务类型" prop="projectType" style="margin-right:0px">
-        <el-select v-model="queryParams.projectType" placeholder="请选择任务类型" style="width:80%" clearable>
+      <el-form-item label="任务类型" prop="projectType" style="margin-right:0px;">
+        <el-select v-model="queryParams.projectType" placeholder="任务类型" style="width:80%" clearable>
           <el-option
               v-for="item in projectType"
               :key="item.value"
@@ -47,6 +47,19 @@
                         format="YYYY年MM月"
                         value-format="YYYY-MM"
                         placeholder="请选择年月">
+        </el-date-picker>
+      </el-form-item>
+      <el-form-item label="导出日期" prop="searchDate">
+        <el-date-picker clearable
+                        v-model="queryParams.searchDateRange"
+                        type="daterange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        format="YYYY年MM月DD日"
+                        value-format="YYYY-MM-DD"
+                        @change="onChangeLatestDate"
+                        unlink-panels>
         </el-date-picker>
       </el-form-item>
       <el-form-item label="选择人员" prop="employeeNumber">
@@ -85,7 +98,7 @@
               icon="Download"
               @click="handleExport"
               v-hasPermi="['system:perf:export']"
-          >导出</el-button>
+          >快速导出</el-button>
         </el-col>
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
@@ -327,6 +340,9 @@ const data = reactive({
     workType: null,
     projectType: null,
     searchDate: getDate(),
+    searchDateRange: [],
+    searchDateBegin: undefined,
+    searchDateEnd: undefined,
   },
   rules: {
     workType: [
@@ -510,6 +526,12 @@ function reset() {
 function handleQuery() {
     if(showBar == true){
       queryParams.value.pageNum = 1;
+      if(queryParams.value.searchDate != null){
+        debugger;
+        queryParams.value.searchDateBegin = null;
+        queryParams.value.searchDateEnd = null;
+        queryParams.value.searchDateRange = null;
+      }
       if(queryParams.value.searchDate != null && (queryParams.value.employeeNumber != null && queryParams.value.employeeNumber != "")){
         showEmployeeName = false;
         showEmployeeNumber = false;
@@ -523,6 +545,12 @@ function handleQuery() {
       myChart.dispose();//销毁
       pieChart();
     }
+}
+
+function onChangeLatestDate(dates){
+  queryParams.value.searchDate = null;
+  queryParams.value.searchDateBegin = dates[0];
+  queryParams.value.searchDateEnd = dates[1];
 }
 
 /** 切换按钮操作 */
@@ -625,9 +653,10 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
+
   proxy.download('system/perf/export', {
     ...queryParams.value
-  }, `perf_${new Date().getTime()}.xlsx`)
+  }, `电气院员工绩效表_${new Date().toLocaleDateString()}.xlsx`)
 }
 getDeptTree();
 getList();

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-if="showSearch" label-width="68px">
       <el-form-item label="工作类型" prop="workType">
         <el-select v-model="queryParams.workType" placeholder="请选择工作类型" @change="getworkType" clearable>
           <el-option
@@ -140,7 +140,7 @@
     </el-table>
 
     <pagination
-        v-show="total>0"
+        v-if="total>0"
         :total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
@@ -195,7 +195,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <div v-show="form.completionResult === 'CR002'">
+        <div v-if="form.completionResult === 'CR002'">
         <el-form-item label="完成比例(%)" prop="completionRatio">
           <el-input v-model="form.completionRatio"  placeholder="请输入完成比例" />
         </el-form-item>
@@ -226,7 +226,7 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm" v-show="isUpdate">确 定</el-button>
+          <el-button type="primary" @click="submitForm" v-if="isUpdate">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
